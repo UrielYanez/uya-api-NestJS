@@ -1,9 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { Client } from 'pg';
+import { Task } from './entities/task.entity';
 
 @Injectable()
 export class TaskService {
-  public task(): string {
-    return 'Listado de tareas';
+  constructor(
+    @Inject('MYSQL_CONNECTION') private mysql: any,
+    @Inject('POSTGRES_CONNECTION') private pg: Client,
+  ) {
+
+  }
+
+  public async getAllTasks(): Promise<Task[]> {
+    const query = 'SELECT * FROM tasks ORDER BY name ASC';
+
+    const [results] = await this.mysql.query(query);
+    
+    return results as Task[];
+  }
+
+  public GetTaskById(id: number): string {
+    return `Tarea Encontrada ${id}`;
   }
 
   public create(task: any): string {
@@ -18,7 +35,5 @@ export class TaskService {
     return `Tarea Eliminada con id: ${id}`;
   }
 
-  public findById(id: number): string {
-    return `Tarea Encontrada ${id}`;
-  }
+  
 }

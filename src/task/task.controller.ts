@@ -1,37 +1,57 @@
-import { Controller, Delete, Get, Post, Put, Body, Param } from '@nestjs/common';
+import {Controller, Delete, Get, Post, Put, Body, Param, HttpException, HttpStatus, ParseIntPipe } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { Task } from './entities/task.entity';
+import { updateTaskDto } from './dto/update-task-dto';
+import { CreateTaskDto } from './dto/create-task-dto';
 
 @Controller('api/task')
 export class TaskController {
     constructor(private taskService: TaskService) { }
 
+    //GetAll
     @Get()
     public async GetAllTask(): Promise<Task[]> {
         return await this.taskService.getAllTasks();
     }
-    
-    // Usamos @Param('id') para extraer el ID de la URL
+
+    // GetById
     @Get(':id')
-    public findById(@Param('id') id: number): string {
-        return this.taskService.GetTaskById(id);
+    public async findById(@Param('id', ParseIntPipe) id: number): Promise<Task> {
+        const result = await this.taskService.GetTaskById(id);
+        if (result == undefined) {
+            throw new HttpException('Tarea con id ' + id + ' no encontrada', HttpStatus.NOT_FOUND);
+        }
+        return await this.taskService.GetTaskById(id);
     }
 
-    // Usamos @Body() para extraer el JSON que envías desde Postman
+    // Create
     @Post('create')
-    public create(@Body() task: any): string {
-        return this.taskService.create(task);
+    public async create(@Body() task: CreateTaskDto): Promise<Task> {
+        const result = await this.taskService.insertTask(task);
+        if (result == undefined) {
+            throw new HttpException('Error al crear la tarea', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return result;
     }
 
-    // Actualizamos la ruta para que reciba el ID en la URL de forma más RESTful
-    @Delete(':id')
-    public delete(@Param('id') id: number): string {
-        return this.taskService.delete(id);
-    }
-
-    // Combinamos @Param para el ID y @Body para los datos a actualizar
+    // Update
     @Put(':id')
-    public update(@Param('id') id: number, @Body() task: any): string {
-        return this.taskService.update(id, task);
+    public async updateTask(@Param('id', ParseIntPipe) id: number, @Body() task: updateTaskDto): Promise<Task> {
+        const result = await this.taskService.updateTask(id, task);
+        if (result == undefined) {
+            throw new HttpException('Error al actualizar la tarea con id ' + id, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return this.taskService.updateTask(id, task);
     }
+
+    // Delete
+    @Delete(':id')
+    public async delete(@Param('id', ParseIntPipe) id: number): Promise<boolean> {
+        const result = await this.taskService.delete(id);
+        if (!result) {
+            throw new HttpException('Error al eliminar la tarea con id ' + id, HttpStatus.NOT_FOUND);
+        }
+        return true;
+    }
+
 }

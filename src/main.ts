@@ -35,3 +35,7 @@ bootstrap();
 
 //? SWAGGER
 //! npm install @nestjs/swagger
+
+//? BCRYPT
+//! npm i bcrypt
+//! npm i @types/bcrypt -D

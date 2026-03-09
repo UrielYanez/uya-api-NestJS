@@ -22,7 +22,7 @@ export class TasksService {
     orderBy?: Prisma.TaskOrderByWithRelationInput;
   }): Promise<Task[]> {
     const { skip, take, cursor, where, orderBy } = params;
-    return this.prisma.post.findMany({
+    return this.prisma.task.findMany({
       skip,
       take,
       cursor,

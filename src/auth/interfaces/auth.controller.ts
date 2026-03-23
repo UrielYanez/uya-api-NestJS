@@ -1,36 +1,49 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from "@nestjs/common";
-import { AuthService } from "./auth.service";
-import { LoginDto } from "../dto/login.dto";
+import {Body, Controller, Get, HttpCode, HttpStatus, Post, UnauthorizedException} from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { LoginDto } from '../dto/login.dto';
+import { UtilService } from 'src/common/services/util.service';
 
-@Controller("api/auth")
+@Controller('api/auth')
 export class AuthController {
+  constructor(
+    private readonly authSvc: AuthService,
+    private readonly utilSvc: UtilService,
+  ) {}
 
-    constructor(private authSvc: AuthService) {}
+  @Post('/login')
+  @HttpCode(HttpStatus.OK)
+  public async login(@Body() login: LoginDto) {
+    const { username, password } = login;
 
-    // POST /auth/register - 201 Created
+    //Verificar usujario y contraseña
+    const user = await this.authSvc.getUserByUsername(username);
+    if (!user) 
+      throw new UnauthorizedException('Usuario o contraseña incorrectos');
 
-    @Post()
-    @HttpCode(HttpStatus.OK)
-    public login(@Body() loginDto: LoginDto) {
-        const { username, password } = loginDto;
+    if (!await this.utilSvc.checkPassword(password, user.password)) {
+        // Obtener la información del usuario (payload)
+        const { password, username, ...payload } = user;
 
+        //Generar el JWT
+        const access_token = await this.utilSvc.generateJWT(payload);
+
+        //Generar el refresh token
+        const refresh_token = await this.utilSvc.generateJWT(payload);
+
+        return { access_token, refresh_token };
+    } else {
+        
     }
+  }
 
-    
+  // POST /auth/register - 201 Created
 
-    @Get("/me")
-    public getProfile() {
+  @Get('/me')
+  public getProfile() {}
 
-    }
+  @Post('/refresh')
+  public refreshToken() {}
 
-    @Post("/refresh")
-    public refreshToken(){
-
-    }
-
-    @Post("/logout")
-    public logout() {
-
-    }
-
+  @Post('/logout')
+  public logout() {}
 }

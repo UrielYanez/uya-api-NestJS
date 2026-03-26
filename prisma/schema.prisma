@@ -19,6 +19,7 @@ model User {
   username String @db.VarChar(100)
   password String @db.LongText
   created_at DateTime @default(now())
+  hash String? @db.LongText
   task Task[]
 }
 

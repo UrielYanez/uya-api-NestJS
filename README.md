@@ -100,3 +100,8 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 
 ## Prisma
 Nest is (MIT LICENCED)
+
+npx prisma migrate dev --name init
+npx prisma generate
+
+git commit -a -m "Corrección de inicio de sesión y configuracion de rutas (me, logout, refresh)"

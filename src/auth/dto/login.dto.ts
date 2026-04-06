@@ -5,9 +5,9 @@ export class LoginDto {
     @IsNotEmpty()
     @IsString()
     @MinLength(3)
+    username!: string;
     
-    username: string;
-    
-    
-    password: string;
+    @IsString()
+    @IsNotEmpty()
+    password!: string;
 }

@@ -21,6 +21,9 @@ model User {
   created_at DateTime @default(now())
   hash String? @db.LongText
   task Task[]
+
+
+  logs Logs[]
 }
 
 model Task {
@@ -30,4 +33,15 @@ model Task {
   priority Boolean
   userId Int
   user User @relation(fields: [userId], references: [id])
+}
+
+model Logs {
+  id Int @default(autoincrement()) @id
+  statusCode Int
+  timestamp DateTime
+  path String @db.MediumText
+  errorCode String @db.MediumText
+  session_id Int?
+
+  user User? @relation(fields: [session_id], references: [id])
 }

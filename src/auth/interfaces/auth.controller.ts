@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from '../dto/login.dto';
 import { UtilService } from 'src/common/services/util.service';
 import { AuthGuard } from 'src/common/guards/auth.guards';
+import { AppException } from 'src/common/exceptions/app.exception';
 
 @Controller('api/auth')
 export class AuthController {
@@ -13,7 +14,8 @@ export class AuthController {
 
   @Post('/login')
   @HttpCode(HttpStatus.OK)
-  public async login(@Body() login: LoginDto) {
+  public async login(@Body() login: LoginDto):Promise<any> {
+    
     const { username, password } = login;
 
     //Verificar usujario y contraseña
@@ -21,7 +23,7 @@ export class AuthController {
     if (!user) 
       throw new UnauthorizedException('Usuario o contraseña incorrectos');
 
-    if (!await this.utilSvc.checkPassword(password, user.password)) {
+    if (await this.utilSvc.checkPassword(password, user.password)) {
         // Obtener la información del usuario (payload)
         const { password, username, ...payload } = user;
 
@@ -41,7 +43,7 @@ export class AuthController {
         //Regresar el refresh token
         return { access_token, refresh_token };
     } else {
-        
+        throw new UnauthorizedException('La contraseña es incorrecta');
     }
   }
 
@@ -50,8 +52,7 @@ export class AuthController {
   @Get('/me')
   @UseGuards(AuthGuard)
   public getProfile(@Req() request: any) {
-    const { user } = request['user'];
-    return user;
+    return request['user'];
   }
 
   @Post('/refresh')
@@ -60,7 +61,8 @@ export class AuthController {
     const sessionUser = request['user'];
     const user = await this.authSvc.getUserById(sessionUser.id);
     if (!user || !user.hash)
-        throw new ForbiddenException('Acceso Denegado');
+      throw new AppException('Token no válido', HttpStatus.FORBIDDEN, '2');
+        // throw new ForbiddenException('Acceso Denegado');
 
       // Verificar que el hash del refresh token en la base de datos coincida con el hash del token proporcionado
       if(sessionUser.hash !== user.hash)

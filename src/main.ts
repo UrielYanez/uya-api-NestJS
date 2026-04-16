@@ -3,9 +3,19 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionFilter } from './common/filters/http-exception.filter';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  //Configurar CORS para permitir que Angular reciba las cookies
+  app.enableCors({
+    origin: 'http://localhost:4200',
+    credentials: true,
+  });
+
+  //Permitir el uso de cookies
+  app.use(cookieParser());
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true
@@ -27,6 +37,7 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
+
 
 
 //? MYSQL
